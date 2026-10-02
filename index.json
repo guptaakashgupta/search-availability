@@ -1,0 +1,54 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "filter": {
+        "grocery_synonyms": {
+          "type": "synonym_graph",
+          "synonyms": [
+            "bee hoon, rice vermicelli",
+            "kopi, coffee",
+            "teh, tea",
+            "soya, soy",
+            "icecream, ice cream",
+            "chye sim, choy sum"
+          ]
+        },
+        "edge_2_15": { "type": "edge_ngram", "min_gram": 2, "max_gram": 15 }
+      },
+      "analyzer": {
+        "product_index": { "tokenizer": "standard", "filter": ["lowercase", "asciifolding"] },
+        "product_search": { "tokenizer": "standard", "filter": ["lowercase", "asciifolding", "grocery_synonyms"] },
+        "autocomplete": { "tokenizer": "standard", "filter": ["lowercase", "edge_2_15"] }
+      }
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "sku": { "type": "keyword" },
+      "name": {
+        "type": "text",
+        "analyzer": "product_index",
+        "search_analyzer": "product_search",
+        "fields": {
+          "raw": { "type": "keyword" },
+          "auto": { "type": "text", "analyzer": "autocomplete", "search_analyzer": "standard" }
+        }
+      },
+      "brand": {
+        "type": "text",
+        "analyzer": "product_index",
+        "search_analyzer": "product_search",
+        "fields": { "raw": { "type": "keyword" } }
+      },
+      "categories": { "type": "keyword" },
+      "category_names": { "type": "text", "analyzer": "product_index", "search_analyzer": "product_search" },
+      "price": { "type": "scaled_float", "scaling_factor": 100 },
+      "popularity": { "type": "integer" },
+      "available_store_ids": { "type": "keyword" },
+      "online_in_stock": { "type": "boolean" }
+    }
+  }
+}
